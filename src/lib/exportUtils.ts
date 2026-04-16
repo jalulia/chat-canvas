@@ -1,3 +1,10 @@
+function escapeHtml(str: string): string {
+  const map: Record<string, string> = {
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  };
+  return str.replace(/[&<>"']/g, c => map[c] || c);
+}
+
 import type { ParsedTranscript } from './parseTranscript';
 import type { Annotation } from './annotations';
 
@@ -89,7 +96,7 @@ export function exportAsHTML(transcript: ParsedTranscript, annotations: Annotati
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>${transcript.speakers.join(' & ')} — Transcript</title>
+<title>${escapeHtml(transcript.speakers.join(' & '))} — Transcript</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -171,7 +178,7 @@ footer{max-width:40rem;margin:0 auto;padding:32px 28px;border-top:1px solid var(
 </div>
 <section class="hero">
 <div>
-<h1>${transcript.speakers.join(' & ')}</h1>
+<h1>${escapeHtml(transcript.speakers.join(' & '))}</h1>
 <p class="deck">${transcript.messages.length} turns · ${transcript.speakers.length} speakers</p>
 </div>
 </section>
@@ -180,9 +187,9 @@ footer{max-width:40rem;margin:0 auto;padding:32px 28px;border-top:1px solid var(
 ${transcript.messages.map(msg => {
   const msgAnns = annotations.filter(a => a.messageId === msg.id);
   return `<div class="turn ${msg.isUser ? 'you' : 'mir'}">
-<div class="meta">${msg.speaker}${msg.timestamp ? `<span class="time">${msg.timestamp}</span>` : ''}</div>
-<div class="text">${msg.text.replace(/\n/g, '<br>')}</div>
-${msgAnns.map(a => `<div style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--signal);display:flex;align-items:start;gap:6px"><span>↳</span><span style="color:var(--mute);font-size:13px;font-family:var(--sans);text-transform:none;letter-spacing:normal">${a.text}</span></div>`).join('')}
+<div class="meta">${escapeHtml(msg.speaker)}${msg.timestamp ? `<span class="time">${escapeHtml(msg.timestamp)}</span>` : ''}</div>
+<div class="text">${escapeHtml(msg.text).replace(/\n/g, '<br>')}</div>
+${msgAnns.map(a => `<div style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--signal);display:flex;align-items:start;gap:6px"><span>↳</span><span style="color:var(--mute);font-size:13px;font-family:var(--sans);text-transform:none;letter-spacing:normal">${escapeHtml(a.text)}</span></div>`).join('')}
 </div>`;
 }).join('\n')}
 </div>
