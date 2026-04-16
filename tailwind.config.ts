@@ -13,6 +13,11 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["Geist", "system-ui", "sans-serif"],
+        display: ["Instrument Serif", "serif"],
+        mono: ["JetBrains Mono", "monospace"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,25 +62,22 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        paper: {
-          DEFAULT: "hsl(var(--paper))",
-          2: "hsl(var(--paper-2))",
+        editorial: {
+          paper: "#ffffff",
+          paper2: "#fafafa",
+          ink: "#09090b",
+          ink2: "#1c1c20",
+          mute: "#52525b",
+          mute2: "#a1a1aa",
+          line: "rgba(9,9,11,.08)",
+          rail: "rgba(9,9,11,.05)",
         },
-        ink: {
-          DEFAULT: "hsl(var(--ink))",
-          2: "hsl(var(--ink-2))",
-        },
-        "mute-color": {
-          DEFAULT: "hsl(var(--mute-color))",
-          2: "hsl(var(--mute-2-color))",
-        },
-        line: "hsl(var(--line))",
-        rail: "hsl(var(--rail))",
-        ice: "hsl(var(--ice))",
-        laminar: "hsl(var(--laminar))",
-        heat: "hsl(var(--heat))",
-        signal: "hsl(var(--signal))",
-        balanced: "hsl(var(--balanced))",
+        ice: "#2b8ef5",
+        laminar: "#10b981",
+        heat: "#ff5a1f",
+        void: "#e11d48",
+        signal: "#f59e0b",
+        balanced: "#16a34a",
         annotation: {
           DEFAULT: "hsl(var(--annotation))",
           bg: "hsl(var(--annotation-bg))",

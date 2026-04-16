@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,6 +6,25 @@
 
 @layer base {
   :root {
+    /* Editorial palette - exact match to mir-article */
+    --paper: #ffffff;
+    --paper-2: #fafafa;
+    --ink: #09090b;
+    --ink-2: #1c1c20;
+    --mute: #52525b;
+    --mute-2: #a1a1aa;
+    --line: rgba(9, 9, 11, 0.08);
+    --rail: rgba(9, 9, 11, 0.05);
+
+    /* Accents */
+    --ice: #2b8ef5;
+    --laminar: #10b981;
+    --heat: #ff5a1f;
+    --void: #e11d48;
+    --signal: #f59e0b;
+    --balanced: #16a34a;
+
+    /* shadcn HSL variables for components */
     --background: 0 0% 100%;
     --foreground: 240 6% 6%;
 
@@ -34,27 +53,6 @@
     --input: 240 6% 90%;
     --ring: 240 6% 6%;
     --radius: 0.25rem;
-
-    /* Editorial palette */
-    --paper: 0 0% 100%;
-    --paper-2: 0 0% 98%;
-    --ink: 240 6% 4%;
-    --ink-2: 240 5% 12%;
-    --mute-color: 240 4% 32%;
-    --mute-2-color: 240 4% 63%;
-    --line: 240 6% 90%;
-    --rail: 240 6% 95%;
-
-    /* Accents */
-    --ice: 211 91% 56%;
-    --laminar: 160 72% 39%;
-    --heat: 18 100% 56%;
-    --signal: 38 92% 50%;
-    --balanced: 142 72% 29%;
-
-    /* Annotation */
-    --annotation: 45 93% 47%;
-    --annotation-bg: 45 93% 97%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -99,13 +97,23 @@
 
 @layer base {
   * {
-    @apply border-border;
+    box-sizing: border-box;
   }
   body {
-    @apply bg-background text-foreground;
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
     font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    font-weight: 400;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--ink);
+    color: #fff;
   }
 }
 
@@ -115,6 +123,30 @@
   }
   .font-mono-editorial {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  .a-ice {
+    color: var(--ice);
+    font-weight: 500;
+  }
+  .a-laminar {
+    color: var(--laminar);
+    font-weight: 500;
+  }
+  .a-heat {
+    color: var(--heat);
+    font-weight: 500;
+  }
+  .a-void {
+    color: var(--void);
+    font-weight: 500;
+  }
+  .a-signal {
+    color: var(--signal);
+    font-weight: 500;
+  }
+  .a-balanced {
+    color: var(--balanced);
+    font-weight: 500;
   }
 }
 

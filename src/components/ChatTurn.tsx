@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import type { ChatMessage } from '@/lib/parseTranscript';
 
 interface ChatTurnProps {
@@ -7,54 +7,87 @@ interface ChatTurnProps {
 
 const ChatTurn = ({ message }: ChatTurnProps) => {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add('in');
+          obs.disconnect();
+        }
+      },
       { threshold: 0.15 }
     );
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
 
+  const isMir = !message.isUser;
+
   return (
     <div
       ref={ref}
-      className={`
-        group relative my-8 transition-all duration-700 ease-out
-        ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3.5'}
-      `}
+      className={`turn ${isMir ? 'mir' : 'you'}`}
+      style={{
+        position: 'relative',
+        margin: '34px 0',
+        opacity: 0,
+        transform: 'translateY(14px)',
+        transition: 'opacity 0.9s ease, transform 0.9s ease',
+        maxWidth: isMir ? '32rem' : '26rem',
+        marginRight: isMir ? 'auto' : undefined,
+        marginLeft: isMir ? undefined : 'auto',
+        textAlign: isMir ? 'left' : 'right',
+      }}
     >
-      <div className="flex items-start gap-0">
-        {/* Main content area */}
-        <div className={`
-          flex-1 relative
-          ${message.isUser ? 'max-w-md ml-auto text-right' : 'max-w-lg mr-auto'}
-        `}>
-          {/* Meta */}
-          <div className={`font-mono-editorial text-[11px] tracking-[0.14em] uppercase font-medium text-ink mb-2.5 ${message.isUser ? 'text-right' : ''}`}>
-            <span>{message.speaker}</span>
-            {message.timestamp && (
-              <span className="text-mute-color-2 ml-2.5 font-normal">{message.timestamp}</span>
-            )}
-          </div>
+      {/* Meta label */}
+      <div
+        className="meta"
+        style={{
+          fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+          fontSize: '11px',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          fontWeight: 500,
+          color: 'var(--ink)',
+          marginBottom: '10px',
+          textAlign: isMir ? 'left' : 'right',
+        }}
+      >
+        <span>{message.speaker}</span>
+        {message.timestamp && (
+          <span
+            className="time"
+            style={{
+              color: 'var(--mute-2)',
+              marginLeft: '10px',
+              fontWeight: 400,
+            }}
+          >
+            {message.timestamp}
+          </span>
+        )}
+      </div>
 
-          {/* Text */}
-          <div className="text-[18px] leading-[1.6] text-ink">
-            {message.text.split('\n').map((line, i) => (
-              <span key={i}>
-                {line}
-                {i < message.text.split('\n').length - 1 && <br />}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Empty margin for layout consistency */}
-        <div className="w-48 shrink-0 pl-6 hidden lg:block" />
+      {/* Message text */}
+      <div
+        className="text"
+        style={{
+          fontFamily: 'Geist, -apple-system, BlinkMacSystemFont, sans-serif',
+          fontSize: '18px',
+          lineHeight: '1.6',
+          fontWeight: 400,
+          color: 'var(--ink)',
+        }}
+      >
+        {message.text.split('\n').map((line, i) => (
+          <span key={i}>
+            {line}
+            {i < message.text.split('\n').length - 1 && <br />}
+          </span>
+        ))}
       </div>
     </div>
   );
