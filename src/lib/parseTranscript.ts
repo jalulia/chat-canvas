@@ -12,13 +12,14 @@ export interface ParsedTranscript {
   speakers: string[];
 }
 
-// Strict speaker name: 1-20 chars, must look like a name/handle (no long phrases)
-const SPEAKER_RE = /^([A-Za-z0-9_.\-]{1,20})\s*:\s*(.+)$/;
-const SPEAKER_SPACE_RE = /^([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s*:\s*(.+)$/; // "First Last: text"
-const TS_SPEAKER_RE = /^\[([^\]]+)\]\s*([A-Za-z0-9_.\- ]{1,20})\s*:\s*(.+)$/;
-const MD_SPEAKER_RE = /^\*\*([^*]{1,20})\*\*\s*:\s*(.+)$/;
+const SPEAKER_RE = /^([A-Za-z0-9_.\-]{1,40})\s*:\s*(.+)$/;
+const SPEAKER_SPACE_RE = /^([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3})\s*:\s*(.+)$/;
+const TS_SPEAKER_RE = /^\[([^\]]+)\]\s*([A-Za-z0-9_.\- ]{1,40})\s*:\s*(.+)$/;
+const MD_SPEAKER_RE = /^\*\*([^*]{1,40})\*\*\s*:\s*(.+)$/;
+const BARE_TS_RE = /^(\d{1,2}:\d{2}(?::\d{2})?)\s+([A-Za-z0-9_.\- ]{1,40})\s*:\s*(.+)$/;
+const PAREN_TS_RE = /^\(([^)]+)\)\s*([A-Za-z0-9_.\- ]{1,40})\s*:\s*(.+)$/;
 
-const USER_ALIASES = new Set(['you', 'me', 'user', 'human']);
+const USER_ALIASES = new Set(['you', 'me', 'user', 'human', 'chris', 'person', 'questioner', 'interviewer']);
 
 export function parseTranscript(raw: string): ParsedTranscript {
   const lines = raw.trim().split('\n');
@@ -54,6 +55,30 @@ export function parseTranscript(raw: string): ParsedTranscript {
       isUser = USER_ALIASES.has(currentSpeaker.toLowerCase());
       currentText = tsMatch[3] + '\n';
       matched = true;
+    }
+
+    if (!matched) {
+      const bareTs = line.match(BARE_TS_RE);
+      if (bareTs) {
+        flush();
+        currentTimestamp = bareTs[1];
+        currentSpeaker = bareTs[2];
+        isUser = USER_ALIASES.has(currentSpeaker.toLowerCase());
+        currentText = bareTs[3] + '\n';
+        matched = true;
+      }
+    }
+
+    if (!matched) {
+      const parenTs = line.match(PAREN_TS_RE);
+      if (parenTs) {
+        flush();
+        currentTimestamp = parenTs[1];
+        currentSpeaker = parenTs[2];
+        isUser = USER_ALIASES.has(currentSpeaker.toLowerCase());
+        currentText = parenTs[3] + '\n';
+        matched = true;
+      }
     }
 
     if (!matched) {
@@ -104,9 +129,11 @@ export function parseTranscript(raw: string): ParsedTranscript {
 
   // Generate title from first AI message
   const firstAI = messages.find(m => !m.isUser);
-  const title = firstAI
-    ? firstAI.text.slice(0, 60).replace(/\n/g, ' ').trim() + '…'
-    : 'Conversation';
+  let title = 'Conversation';
+  if (firstAI) {
+    const firstSentence = firstAI.text.split(/[.!?]\s/)[0];
+    title = (firstSentence.length > 80 ? firstSentence.slice(0, 77) + '…' : firstSentence).replace(/\n/g, ' ').trim();
+  }
 
   return { title, messages, speakers };
 }
