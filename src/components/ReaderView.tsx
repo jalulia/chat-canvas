@@ -7,28 +7,33 @@ import { exportAsPDF, exportAsHTML } from '@/lib/exportUtils';
 interface ReaderViewProps {
   transcript: ParsedTranscript;
   subtitle: string;
+  onSubtitleChange: (s: string) => void;
   onBack: () => void;
 }
 
-const ReaderView = ({ transcript, subtitle, onBack }: ReaderViewProps) => {
+const ReaderView = ({ transcript, subtitle, onSubtitleChange, onBack }: ReaderViewProps) => {
   const [exporting, setExporting] = useState(false);
+  const [editingSubtitle, setEditingSubtitle] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // Single IntersectionObserver for all turns
   useEffect(() => {
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('in');
+            obs.unobserve(entry.target);
           }
         });
       },
       { threshold: 0.15 }
     );
 
-    contentRef.current?.querySelectorAll('.turn').forEach((el) => obs.observe(el));
+    const turns = contentRef.current?.querySelectorAll('.turn');
+    turns?.forEach((el) => obs.observe(el));
     return () => obs.disconnect();
-  }, []);
+  }, [transcript]);
 
   const handleExportPDF = useCallback(async () => {
     setExporting(true);
@@ -47,8 +52,15 @@ const ReaderView = ({ transcript, subtitle, onBack }: ReaderViewProps) => {
     <div style={{ background: 'var(--paper)' }} className="min-h-screen">
       {/* Chrome bar */}
       <div
-        className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-7 py-5 font-mono-editorial text-[10.5px] tracking-[0.16em] uppercase text-white pointer-events-none"
-        style={{ mixBlendMode: 'difference' }}
+        className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-7 py-5 pointer-events-none"
+        style={{
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: '10.5px',
+          letterSpacing: '0.16em',
+          textTransform: 'uppercase' as const,
+          mixBlendMode: 'difference' as const,
+          color: '#fff',
+        }}
       >
         <span>CHAT CANVAS</span>
         <span>TRANSCRIPT TOOL · MMXXVI</span>
@@ -61,29 +73,61 @@ const ReaderView = ({ transcript, subtitle, onBack }: ReaderViewProps) => {
       >
         <div className="relative z-10">
           <div
-            className="font-mono-editorial text-[10.5px] tracking-[0.22em] uppercase mb-5 inline-flex items-center gap-3"
-            style={{ color: 'rgba(255,255,255,.5)' }}
+            className="mb-5 inline-flex items-center gap-3"
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '10.5px',
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase' as const,
+              color: 'rgba(255,255,255,.5)',
+            }}
           >
             <span className="w-7 h-px" style={{ background: 'rgba(255,255,255,.3)' }} />
             <span>{transcript.messages.length} turns · {transcript.speakers.length} speakers</span>
             <span className="w-7 h-px" style={{ background: 'rgba(255,255,255,.3)' }} />
           </div>
           <h1
-            className="font-display text-[clamp(48px,10vw,140px)] leading-[0.92] tracking-[-0.025em] mb-7"
-            style={{ color: '#f6f1e4' }}
+            className="font-display leading-[0.92] tracking-[-0.025em] mb-7"
+            style={{ color: '#f6f1e4', fontSize: 'clamp(48px, 10vw, 140px)' }}
           >
             {transcript.speakers.join(' & ')}
           </h1>
-          <p
-            className="text-lg font-light max-w-[52ch] mx-auto leading-relaxed"
-            style={{ color: 'rgba(255,255,255,.6)' }}
-          >
-            {subtitle || 'A conversation rendered as editorial artifact.'}
-          </p>
+
+          {/* Editable subtitle */}
+          {editingSubtitle ? (
+            <input
+              type="text"
+              value={subtitle}
+              onChange={(e) => onSubtitleChange(e.target.value)}
+              onBlur={() => setEditingSubtitle(false)}
+              onKeyDown={(e) => { if (e.key === 'Enter') setEditingSubtitle(false); }}
+              className="text-lg font-light max-w-[52ch] mx-auto leading-relaxed bg-transparent border-b focus:outline-none text-center w-full"
+              style={{ color: 'rgba(255,255,255,.6)', borderColor: 'rgba(255,255,255,.2)' }}
+              placeholder="Add a subtitle…"
+              autoFocus
+            />
+          ) : (
+            <p
+              className="text-lg font-light max-w-[52ch] mx-auto leading-relaxed cursor-pointer transition-colors"
+              style={{ color: 'rgba(255,255,255,.6)' }}
+              onClick={() => setEditingSubtitle(true)}
+              title="Click to edit subtitle"
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,.85)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,.6)'; }}
+            >
+              {subtitle || 'Click to add a subtitle…'}
+            </p>
+          )}
         </div>
         <div
-          className="absolute left-1/2 bottom-7 -translate-x-1/2 font-mono-editorial text-[9.5px] tracking-[0.22em] uppercase flex flex-col items-center gap-2.5 z-10"
-          style={{ color: 'rgba(255,255,255,.5)' }}
+          className="absolute left-1/2 bottom-7 -translate-x-1/2 flex flex-col items-center gap-2.5 z-10"
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '9.5px',
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase' as const,
+            color: 'rgba(255,255,255,.5)',
+          }}
         >
           <span>scroll</span>
           <span
@@ -104,8 +148,14 @@ const ReaderView = ({ transcript, subtitle, onBack }: ReaderViewProps) => {
         <div className="max-w-3xl mx-auto px-7 py-3 flex items-center justify-between">
           <button
             onClick={onBack}
-            className="inline-flex items-center gap-2 transition-colors font-mono-editorial text-[10px] tracking-[0.14em] uppercase"
-            style={{ color: 'var(--mute)' }}
+            className="inline-flex items-center gap-2 transition-colors"
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '10px',
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase' as const,
+              color: 'var(--mute)',
+            }}
             onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--ink)')}
             onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--mute)')}
           >
@@ -116,8 +166,12 @@ const ReaderView = ({ transcript, subtitle, onBack }: ReaderViewProps) => {
             <button
               onClick={handleExportPDF}
               disabled={exporting}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-sm transition-all font-mono-editorial text-[10px] tracking-[0.14em] uppercase"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-sm transition-all"
               style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: '10px',
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase' as const,
                 borderColor: 'var(--line)',
                 color: 'var(--mute)',
                 opacity: exporting ? 0.4 : 1,
@@ -136,8 +190,12 @@ const ReaderView = ({ transcript, subtitle, onBack }: ReaderViewProps) => {
             </button>
             <button
               onClick={handleExportHTML}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-sm transition-all font-mono-editorial text-[10px] tracking-[0.14em] uppercase"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-sm transition-all"
               style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: '10px',
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase' as const,
                 borderColor: 'var(--line)',
                 color: 'var(--mute)',
               }}
@@ -179,8 +237,12 @@ const ReaderView = ({ transcript, subtitle, onBack }: ReaderViewProps) => {
 
       {/* Footer */}
       <footer
-        className="max-w-3xl mx-auto px-7 py-8 border-t flex justify-between font-mono-editorial text-[10px] tracking-[0.18em] uppercase"
+        className="max-w-3xl mx-auto px-7 py-8 border-t flex justify-between"
         style={{
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: '10px',
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase' as const,
           borderColor: 'var(--line)',
           color: 'var(--mute)',
         }}

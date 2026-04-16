@@ -20,7 +20,7 @@ const NotFound = () => {
         <h1 style={{ marginBottom: "16px", fontSize: "32px", fontWeight: "bold" }}>404</h1>
         <p style={{ marginBottom: "16px", fontSize: "20px", color: "#666" }}>Oops! Page not found</p>
         <a
-          href="/"
+          href="#/"
           style={{
             color: "#0066cc",
             textDecoration: "underline",

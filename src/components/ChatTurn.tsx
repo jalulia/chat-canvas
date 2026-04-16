@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import type { ChatMessage } from '@/lib/parseTranscript';
 
 interface ChatTurnProps {
@@ -7,23 +7,6 @@ interface ChatTurnProps {
 
 const ChatTurn = ({ message }: ChatTurnProps) => {
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          el.classList.add('in');
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.15 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
   const isMir = !message.isUser;
 
   return (
@@ -44,12 +27,11 @@ const ChatTurn = ({ message }: ChatTurnProps) => {
     >
       {/* Meta label */}
       <div
-        className="meta"
         style={{
-          fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+          fontFamily: "'JetBrains Mono', monospace",
           fontSize: '11px',
           letterSpacing: '0.14em',
-          textTransform: 'uppercase',
+          textTransform: 'uppercase' as const,
           fontWeight: 500,
           color: 'var(--ink)',
           marginBottom: '10px',
@@ -59,7 +41,6 @@ const ChatTurn = ({ message }: ChatTurnProps) => {
         <span>{message.speaker}</span>
         {message.timestamp && (
           <span
-            className="time"
             style={{
               color: 'var(--mute-2)',
               marginLeft: '10px',
@@ -73,19 +54,18 @@ const ChatTurn = ({ message }: ChatTurnProps) => {
 
       {/* Message text */}
       <div
-        className="text"
         style={{
-          fontFamily: 'Geist, -apple-system, BlinkMacSystemFont, sans-serif',
+          fontFamily: "'Geist', -apple-system, BlinkMacSystemFont, sans-serif",
           fontSize: '18px',
           lineHeight: '1.6',
           fontWeight: 400,
           color: 'var(--ink)',
         }}
       >
-        {message.text.split('\n').map((line, i) => (
+        {message.text.split('\n').map((line, i, arr) => (
           <span key={i}>
             {line}
-            {i < message.text.split('\n').length - 1 && <br />}
+            {i < arr.length - 1 && <br />}
           </span>
         ))}
       </div>
