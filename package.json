@@ -19,6 +19,7 @@
     "date-fns": "^3.6.0",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.462.0",
+    "pdfjs-dist": "^4.9.155",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.61.1",

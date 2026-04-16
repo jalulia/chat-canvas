@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Upload, FileText, Clipboard } from 'lucide-react';
 
+// @ts-ignore — pdfjs-dist types are complex, dynamic import is fine
 interface UploadViewProps {
   onTranscriptLoaded: (text: string, subtitle: string) => void;
 }
@@ -13,13 +14,34 @@ const UploadView = ({ onTranscriptLoaded }: UploadViewProps) => {
 
   const MAX_SUBTITLE = 120;
 
-  const handleFile = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      if (text) onTranscriptLoaded(text, subtitle);
-    };
-    reader.readAsText(file);
+  const handleFile = useCallback(async (file: File) => {
+    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdfjsLib = await import('pdfjs-dist');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const pageText = content.items
+            .map((item: any) => ('str' in item ? item.str : ''))
+            .join(' ');
+          fullText += pageText + '\n';
+        }
+        if (fullText.trim()) onTranscriptLoaded(fullText, subtitle);
+      } catch (err) {
+        console.error('PDF parse error:', err);
+      }
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        if (text) onTranscriptLoaded(text, subtitle);
+      };
+      reader.readAsText(file);
+    }
   }, [onTranscriptLoaded, subtitle]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
